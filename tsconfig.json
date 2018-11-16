@@ -1,0 +1,13 @@
+{
+  "include": ["src/**/*.ts"],
+  "compilerOptions": {
+    "lib": ["dom","es2015"],
+    "rootDir": "src",
+    "noImplicitThis": true,
+    "strict": true,
+    "outDir": "out",
+    "declaration": true,
+    "declarationDir": "typings",
+    "sourceMap": true
+  }
+}

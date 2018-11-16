@@ -2,6 +2,9 @@
 logs
 *.log
 npm-debug.log*
+.nyc_output/
+out/
+typings/
 
 # Runtime data
 pids
@@ -31,4 +34,5 @@ node_modules
 .idea/
 
 
+lib/*
 \.vscode/launch\.json

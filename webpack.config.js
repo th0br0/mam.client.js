@@ -1,70 +1,57 @@
 /* global __dirname, require, module*/
 
-const webpack = require('webpack')
-const UglifyJsPlugin = webpack.optimize.UglifyJsPlugin
-const path = require('path')
-const env = require('yargs').argv.env // use --env with webpack 2
+const webpack = require("webpack");
+const path = require("path");
+const env = require("yargs").argv.env; // use --env with webpack 2
+const DeclarationBundlerPlugin = require('declaration-bundler-webpack-plugin');
 
-var output = env.path !== undefined ? env.path : 'lib/'
-var libraryName = 'mam.'
-var entry
-var target
-var outputFile
+var libraryName = "mam.";
+var entry;
+var outputFile;
 var rules = [
   {
     test: /(\.jsx|\.js)$/,
-    loader: 'babel-loader',
+    loader: "babel-loader",
     exclude: [/(node_modules|bower_components)/]
-  }
-]
+  },
+  {
+    test: /\.wasm$/,
+    type: "javascript/auto",
+    loaders: ["arraybuffer-loader"]
+  },
+  { test: /\.tsx?$/, loader: "ts-loader" }
+];
 
-if (env === 'node') {
-  entry = __dirname + '/src/node.js'
-  outputFile = libraryName + 'node.js'
-  target = 'node'
-  rules.push({
-    test: /\.rs$/,
-    loader: 'rust-emscripten-loader',
-    options: {
-      release: true
-    }
-  })
-} else {
-  entry = __dirname + '/src/web.js'
-  outputFile = libraryName + 'web.js'
-  target = 'web'
-  rules.push({
-    test: /\.rs$/,
-    loader: 'rust-wasm-loader',
-    options: {
-      release: true,
-      path: output + '/'
-    }
-  })
-}
-console.log(output)
 const config = {
-  entry: entry,
+  entry: __dirname + "/src/index.ts",
   output: {
-    path: __dirname + '/' + output,
-    filename: outputFile,
-    library: libraryName,
-    libraryTarget: 'umd',
+    path: __dirname + "/lib",
+    filename: "mam.js",
+    library: "mam",
+    libraryTarget: "umd",
     umdNamedDefine: true
   },
   module: {
+    strictExportPresence: true,
     rules: rules
   },
+  //optimization: { minimize: true },
   resolve: {
-    modules: [path.resolve('./node_modules'), path.resolve('./src')],
-    extensions: ['.json', '.js']
+    modules: [path.resolve("./node_modules"), path.resolve("./src")],
+    extensions: [".json", ".js", ".ts"]
   },
-  target: target,
+    plugins: [
+      new DeclarationBundlerPlugin({
+        moduleName:'iota.mam',
+        out:'mam.d.ts',
+      })
+    ],
+  devtool: "source-map",
+  target: env,
   node: {
-    fs: 'empty',
-    child_process: 'empty',
-    path: 'empty'
+    fs: "empty",
+    child_process: "empty",
+    path: "empty"
   }
-}
-console.log(config.output)
-module.exports = config
+};
+module.exports = config;
