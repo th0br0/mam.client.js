@@ -16,9 +16,7 @@ export class Seed implements Native {
     private _ptr?: any;
 
     constructor(private _ctx: NativeContext, private _seed: string, private _security: number) {
-        if (_seed.length != 81) {
-            throw "Seed length must be 81 but is " + _seed.length;
-        }
+        H.assertHash(_seed);
     }
 
     seed(): string { return this._seed; }
@@ -145,9 +143,13 @@ export enum Mode {
 }
 
 export function getIDForMode(ctx: NativeContext, mode: Mode, root: string, sideKey: string = '9'.repeat(81)) {
+    H.assertHash(root);
+    H.assertHash(sideKey);
+
     if (mode == Mode.Public) {
         return root;
     }
+
 
     // MAM.js uses CurlP81 whereas Rust is using CurlP27
     /*
@@ -196,9 +198,7 @@ export class Channel {
             return Error.TreeDepleted;
         }
 
-        if (sideKey.length != 81) {
-            return Error.InvalidSideKeyLength;
-        }
+        H.assertHash(sideKey);
 
         let messageT = H.stringToCTrits(this._ctx, message);
         let sideKeyT = H.stringToCTrits(this._ctx, sideKey)
@@ -245,6 +245,9 @@ export class DecodedMessage {
 }
 
 export function decodeMessage(ctx: NativeContext, root: string, payload: string, sideKey: string = "9".repeat(81)): DecodedMessage | Error {
+
+    H.assertHash(root);
+    H.assertHash(sideKey);
 
     let rootT = H.stringToCTrits(ctx, root);
     let payloadT = H.stringToCTrits(ctx, payload);

@@ -6,6 +6,16 @@ enum TritEncoding {
     TRYTE,
 }
 
+export function assertHash(s: string) {
+    if(s.length != 81) {
+        throw "Input is not of length 81";
+    }
+
+    if(!(/^[A-Z9]{81}$/.test(s))) {
+        throw "Input is not validt TryteString";
+    }
+}
+
 function asciiFromMemory(ctx: NativeContext, start: number, length: number): string {
     let str = "";
     let buf = new Uint8Array(ctx.fns().memory.buffer, start, length);
