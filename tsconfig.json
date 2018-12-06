@@ -1,7 +1,7 @@
 {
   "include": ["src/**/*.ts"],
   "compilerOptions": {
-    "lib": ["dom","es2015"],
+    "lib": ["es2015", "dom", "esnext.asynciterable"],
     "rootDir": "src",
     "noImplicitThis": true,
     "strict": true,

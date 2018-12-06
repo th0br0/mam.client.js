@@ -1,5 +1,6 @@
 export * from './bindings';
 export * from './helpers';
+export * from './wrapper';
 
 import { NativeContext } from './bindings';
 

@@ -142,7 +142,7 @@ export enum Mode {
     Restricted
 }
 
-export function getIDForMode(ctx: NativeContext, mode: Mode, root: string, sideKey: string = '9'.repeat(81)) {
+export function getIDForMode(mode: Mode, root: string, sideKey: string = '9'.repeat(81)) {
     H.assertHash(root);
     H.assertHash(sideKey);
 
@@ -186,7 +186,7 @@ export class Channel {
     mode(): Mode { return this._mode; }
 
     id(sideKey: string = '9'.repeat(81)): string {
-        return getIDForMode(this._ctx, this.mode(), this._currentTree.root(), sideKey);
+        return getIDForMode(this.mode(), this._currentTree.root(), sideKey);
     }
 
     transition(next: MerkleTree): Channel {
@@ -244,7 +244,10 @@ export class DecodedMessage {
     ) { }
 }
 
-export function decodeMessage(ctx: NativeContext, root: string, payload: string, sideKey: string = "9".repeat(81)): DecodedMessage | Error {
+
+export type MaybeMessage = DecodedMessage | Error;
+
+export function decodeMessage(ctx: NativeContext, root: string, payload: string, sideKey: string = "9".repeat(81)): MaybeMessage {
 
     H.assertHash(root);
     H.assertHash(sideKey);
