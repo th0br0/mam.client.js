@@ -3,7 +3,7 @@
 const webpack = require("webpack");
 const path = require("path");
 const env = require("yargs").argv.env; // use --env with webpack 2
-const DeclarationBundlerPlugin = require('declaration-bundler-webpack-plugin');
+const DeclarationBundlerPlugin = require("declaration-bundler-webpack-plugin");
 
 var libraryName = "mam.";
 var entry;
@@ -40,12 +40,11 @@ const config = {
     modules: [path.resolve("./node_modules"), path.resolve("./src")],
     extensions: [".json", ".js", ".ts"]
   },
-    plugins: [
-      new DeclarationBundlerPlugin({
-        moduleName:'iota.mam',
-        out:'mam.d.ts',
-      })
-    ],
+  plugins: [
+    new DeclarationBundlerPlugin({
+      out: "mam.d.ts"
+    })
+  ],
   devtool: "source-map",
   target: env,
   node: {

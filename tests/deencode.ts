@@ -2,7 +2,7 @@ import test from 'ava';
 
 import * as MAM from '../lib/mam';
 
-test('MAMChannel::encode and decode', async t => {
+test('Channel::encode and decode', async t => {
     let ctx = await MAM.createContext();
 
     let sideKey = "ABC".repeat(27);
@@ -11,7 +11,7 @@ test('MAMChannel::encode and decode', async t => {
     let seed = new MAM.Seed(ctx, "B".repeat(81), 1);
     let idxSeed = new MAM.IndexedSeed(seed, 0);
     let tree = new MAM.MerkleTree(ctx, idxSeed, 8);
-    let chan = new MAM.MAMChannel(ctx, tree, tree);
+    let chan = new MAM.Channel(ctx, MAM.Mode.Public, tree, tree);
 
     let res = chan.encode(message, sideKey);
     t.true(res instanceof MAM.EncodedMessage);
@@ -24,7 +24,7 @@ test('MAMChannel::encode and decode', async t => {
     seed.discard();
 });
 
-test('MAMChannel::decode does not crash JS', async t => {
+test('Channel::decode does not crash JS', async t => {
     let ctx = await MAM.createContext();
 
     let sideKey = "ABC".repeat(27);
@@ -33,20 +33,20 @@ test('MAMChannel::decode does not crash JS', async t => {
     let seed = new MAM.Seed(ctx, "B".repeat(81), 1);
     let idxSeed = new MAM.IndexedSeed(seed, 0);
     let tree = new MAM.MerkleTree(ctx, idxSeed, 8);
-    let chan = new MAM.MAMChannel(ctx, tree, tree);
+    let chan = new MAM.Channel(ctx, MAM.Mode.Public, tree, tree);
 
     let res = chan.encode(message, sideKey);
     t.true(res instanceof MAM.EncodedMessage);
     let dec = MAM.decodeMessage(ctx, tree.root(), 'B' + (res as MAM.EncodedMessage).payload, sideKey);
 
     t.true(!(dec instanceof MAM.DecodedMessage));
-    t.is(dec as MAM.MAMError, MAM.MAMError.ArrayOutOfBounds);
+    t.is(dec as MAM.Error, MAM.Error.ArrayOutOfBounds);
 
     tree.discard();
     seed.discard();
 });
 
-test('MAMChannel::decode known message works', async t => {
+test('Channel::decode known message works', async t => {
     let msg = 'AQ9DPMETATBBUIFJFDOPCC9XWEOVLJIVNKZAKDTEECWEQKNODCGTKFDMDZODNHZZF9LDJJIDSFYTOYCQQ' +
         'AEVJMGODCVPOYBEXUFWCMBURMTARQHUYN9RQQREDN9HQFRFTJHWHMMSLTQGFKYCIKWGFQXFEAMUQXWZNW' +
         'XVPSAVGCOD99WWWZAGRLGUAUWSJNBTJRTKLHCKJLVQURJM9YQMCNJKI9FENMJLARJYZIPSEOLPGAJ9BTL' +

@@ -1,4 +1,6 @@
 import * as H from './helpers';
+import Curl from '@iota/curl';
+import { trits, trytes } from '@iota/converter';
 
 export class NativeContext {
     constructor(private _wasm: WebAssembly.ResultObject) { }
@@ -126,7 +128,7 @@ export class EncodedMessage {
     ) { }
 
 }
-export enum MAMError {
+export enum Error {
     None = 0,
     InvalidHash,
     InvalidSignature,
@@ -135,23 +137,67 @@ export enum MAMError {
     InvalidSideKeyLength
 }
 
-export class MAMChannel {
-    private _currentIndex: number = 0;
+export enum Mode {
+    Public = 0,
+    Old,
+    Private,
+    Restricted
+}
 
-    constructor(private _ctx: NativeContext, private _currentTree: MerkleTree, private _nextTree: MerkleTree) { }
-
-
-    transition(next: MerkleTree): MAMChannel {
-        return new MAMChannel(this._ctx, this._nextTree, next);
+export function getIDForMode(ctx: NativeContext, mode: Mode, root: string, sideKey: string = '9'.repeat(81)) {
+    if (mode == Mode.Public) {
+        return root;
     }
 
-    encode(message: string, sideKey: string = '9'.repeat(81)): EncodedMessage | MAMError {
+    // MAM.js uses CurlP81 whereas Rust is using CurlP27
+    /*
+    let keyT = H.stringToCTrits(ctx, sideKey);
+    let rootT = H.stringToCTrits(ctx, root);
+
+    let idT = ctx.fns().iota_mam_id(keyT, rootT);
+
+    let id = H.ctritsToString(ctx, idT);
+
+    [keyT, rootT, idT].forEach(v => ctx.fns().iota_ctrits_drop(v));
+
+    return id;*/
+
+    let c = new Curl();
+    let rootT = trits(root);
+    let keyT = trits(sideKey);
+    let out = new Int8Array(243);
+
+    if (mode != Mode.Old) {
+        c.absorb(keyT, 0, 243);
+    }
+    c.absorb(rootT, 0, 243);
+    c.squeeze(out, 0, out.length);
+
+    return trytes(out);
+}
+
+export class Channel {
+    private _currentIndex: number = 0;
+
+    constructor(private _ctx: NativeContext, private _mode: Mode, private _currentTree: MerkleTree, private _nextTree: MerkleTree) { }
+
+    mode(): Mode { return this._mode; }
+
+    id(sideKey: string = '9'.repeat(81)): string {
+        return getIDForMode(this._ctx, this.mode(), this._currentTree.root(), sideKey);
+    }
+
+    transition(next: MerkleTree): Channel {
+        return new Channel(this._ctx, this._mode, this._nextTree, next);
+    }
+
+    encode(message: string, sideKey: string = '9'.repeat(81)): EncodedMessage | Error {
         if ((this._currentIndex + 1) >= this._currentTree.size()) {
-            return MAMError.TreeDepleted;
+            return Error.TreeDepleted;
         }
 
         if (sideKey.length != 81) {
-            return MAMError.InvalidSideKeyLength;
+            return Error.InvalidSideKeyLength;
         }
 
         let messageT = H.stringToCTrits(this._ctx, message);
@@ -196,10 +242,9 @@ export class DecodedMessage {
         public payload: string,
         public nextRoot: string
     ) { }
-
 }
 
-export function decodeMessage(ctx: NativeContext, root: string, payload: string, sideKey: string = "9".repeat(81)): DecodedMessage | MAMError {
+export function decodeMessage(ctx: NativeContext, root: string, payload: string, sideKey: string = "9".repeat(81)): DecodedMessage | Error {
 
     let rootT = H.stringToCTrits(ctx, root);
     let payloadT = H.stringToCTrits(ctx, payload);
@@ -209,16 +254,16 @@ export function decodeMessage(ctx: NativeContext, root: string, payload: string,
 
     try {
         result = ctx.fns().iota_mam_parse(payloadT, sideKeyT, rootT);
-    } catch(e) {
+    } catch (e) {
         console.dir(e);
-        return MAMError.InvalidHash;
+        return Error.InvalidHash;
     }
 
     let buf = new Uint32Array(ctx.fns().memory.buffer, result, 3);
 
     let errorCode = buf[0];
-    if(errorCode != 0) {
-        return errorCode as MAMError;
+    if (errorCode != 0) {
+        return errorCode as Error;
     }
 
     let umPayloadT = buf[1];

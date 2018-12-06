@@ -19,7 +19,8 @@
     "@iota/converter": "^1.0.0-beta.6",
     "@iota/core": "^1.0.0-beta.6",
     "@iota/curl": "^1.0.0-beta.6",
-    "@iota/http-client": "^1.0.0-beta.6"
+    "@iota/http-client": "^1.0.0-beta.6",
+    "declaration-bundler-webpack-plugin": "https://github.com/th0br0/declaration-bundler-webpack-plugin.git"
   },
   "devDependencies": {
     "@babel/core": "^7.1.6",
@@ -31,7 +32,6 @@
     "babel-eslint": "^10.0.1",
     "babel-loader": "8.0.4",
     "babel-plugin-add-module-exports": "1.0.0",
-    "declaration-bundler-webpack-plugin": "https://github.com/th0br0/declaration-bundler-webpack-plugin.git",
     "ts-loader": "^5.3.1",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.1",
